@@ -1,0 +1,38 @@
+version: '3.7'
+services:
+  db:
+    image: jdanussi/postgres-db:v1
+    container_name: postgres-db
+    hostname: postgres-db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres123
+    ports:
+     - "5432:5432"
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+      - ./sql:/sql
+
+  etl:
+    depends_on:
+      - db
+    image: jdanussi/python-etl:v1
+    container_name: python-etl
+    hostname: python-etl
+    volumes:
+      - ./etl/data:/etl/data
+
+  reporter:
+    depends_on:
+      - etl
+    image: jdanussi/python-reporter:v1
+    container_name: python-reporter
+    hostname: python-reporter
+    volumes:
+      - ./report/sql:/report/sql
+      - ./report/queries.json:/report/queries.json
+      - ./report/output:/report/output
+
+networks:
+  default:
+    name: covid19_net
